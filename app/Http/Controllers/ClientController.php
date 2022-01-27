@@ -16,8 +16,45 @@ class ClientController extends Controller
        
     }
 
-  
+    public function img()
+    {
+        return view('client.image'); 
+    }
 
+    public function colorize(Request $request){
+        // get file from post request
+        $file = $request->file('file');
+        // get base64 from file
+        $base64 = base64_encode(file_get_contents($file));
+        $ch = curl_init();
+
+        // Set ssl options to false 
+        curl_setopt($ch, CURLOPT_URL, 'https://api.deepai.org/api/colorizer');
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, array('image' => $base64));
+
+        $headers = array();
+        $headers[] = 'Api-Key: quickstart-QUdJIGlzIGNvbWluZy4uLi4K';
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+
+        $result = curl_exec($ch);
+        if (curl_errno($ch)) {
+            echo 'Error:' . curl_error($ch);
+        }
+        curl_close($ch);
+
+        $response = json_decode($result);
+        $image = $response->output_url;
+
+        return view('client.image', ['image' => $image]);
+    }
+
+    public function vid()
+    {
+        return view('client.video'); 
+    }
     
     public function parametre()
     {
@@ -51,9 +88,6 @@ class ClientController extends Controller
           $clients ->update($request->all());
           $clients->name = $request->get('name');
           $clients->email = $request->get('email');                                                                                  
-         
-    		
-
 
           $clients->save();
           
@@ -121,7 +155,9 @@ public function store(Request $request)
                 return redirect()->route('parametre_client')->with('msg','Mot de passe actuel incorrect');
             }
         }
-    
+
+
+        
 
 
 }
